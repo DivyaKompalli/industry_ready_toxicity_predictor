@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Drug Toxicity Predictor</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/">ToxPredict</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/login" style="float: right">Login</a>
+    </div>
+
+    <div class="container">
+      <div class="card">
+        <h1>Drug Toxicity Intelligence</h1>
+        <p class="text-secondary">
+          Predict molecular toxicity with machine learning
+        </p>
+
+        <div class="prediction-form">
+          <h2><i class="icon-flask"></i> Single Prediction</h2>
+          <form method="POST" action="/predict">
+            <div class="form-group">
+              <label for="smiles">{{ _('SMILES Notation') }}</label>
+              <input
+                type="text"
+                class="form-control"
+                name="smiles"
+                id="smiles"
+                placeholder="e.g. CCO"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="model">{{ _('Select Model') }}</label>
+              <select name="model" id="model" class="form-control">
+                <option value="rf">Random Forest</option>
+                <option value="xgb">XGBoost</option>
+              </select>
+            </div>
+
+            <h2><i class="icon-pencil"></i> {{ _('Draw Molecule') }}</h2>
+            <iframe
+              id="ketcher-frame"
+              src="https://lifescience.opensource.epam.com/ketcher/ketcher.html"
+              style="width: 100%; height: 400px; border: 1px solid #ccc"
+            ></iframe>
+            <div class="form-group">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="fetchSmiles()"
+              >
+                <i class="icon-magic"></i> {{ _('Use Drawn Molecule') }}
+              </button>
+            </div>
+
+            <script>
+              async function fetchSmiles() {
+                const frame = document.getElementById("ketcher-frame");
+                try {
+                  const smiles = await frame.contentWindow.ketcher.getSmiles();
+                  document.getElementById("smiles").value = smiles;
+                } catch (error) {
+                  alert("Failed to retrieve SMILES from Ketcher: " + error);
+                }
+              }
+            </script>
+
+            <button type="submit" class="btn">
+              <i class="icon-calculator"></i> {{ _('Predict Toxicity') }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

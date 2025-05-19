@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>User Dashboard | Toxicity Predictor</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/">Predictor</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout" style="float: right">Logout</a>
+    </div>
+
+    <div class="container">
+      <div class="card">
+        <h1>Prediction History</h1>
+
+        {% if history and history|length > 0 %}
+        <div id="toxChart" style="height: 500px"></div>
+
+        <div class="prediction-list">
+          <h2>Recent Predictions</h2>
+          {% for pred in history[-5:] %}
+          <div class="prediction-item">
+            <p><strong>SMILES:</strong> {{ pred.smiles }}</p>
+            <p>
+              <strong>Result:</strong>
+              <span
+                class="prediction-badge {% if pred.is_toxic %}badge-toxic{% else %}badge-nontoxic{% endif %}"
+              >
+                {{ pred.prediction }} ({{ "%.3f"|format(pred.toxicity_score) }})
+              </span>
+            </p>
+            <p>
+              <small>{{ pred.timestamp if 'timestamp' in pred else '' }}</small>
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <script>
+          const history = {{ history | tojson }};
+          const data = [{
+              x: history.map(p => p.smiles),
+              y: history.map(p => p.toxicity_score * 100),
+              text: history.map(p => p.prediction + ' (' + (p.toxicity_score * 100).toFixed(1) + '%)'),
+              type: 'bar',
+              marker: {
+                  color: history.map(p =>
+                      p.toxicity_score > 0.7 ? '#e74c3c' :
+                      p.toxicity_score > 0.5 ? '#f39c12' : '#2ecc71')
+              }
+          }];
+
+          const layout = {
+              title: 'Toxicity Prediction History',
+              xaxis: { title: 'SMILES' },
+              yaxis: {
+                  title: 'Toxicity Score (%)',
+                  range: [0, 100],
+                  tickformat: '.1f'
+              },
+              margin: { t: 50, l: 50, r: 50, b: 150 },
+              hovermode: 'closest'
+          };
+
+          Plotly.newPlot('toxChart', data, layout);
+        </script>
+        {% else %}
+        <div class="empty-state">
+          <p>No predictions yet. Try predicting some molecules!</p>
+          <a href="/" class="btn">Make Your First Prediction</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>

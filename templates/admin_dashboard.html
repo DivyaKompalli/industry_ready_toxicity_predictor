@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin Analytics</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Admin Analytics Dashboard</h1>
+      <p>Total Predictions: {{ total }}</p>
+
+      <div class="card">
+        <h2>Usage by User</h2>
+        <ul>
+          {% for email, count in user_stats %}
+          <li><strong>{{ email }}</strong>: {{ count }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Model Usage</h2>
+        <div id="model-usage"></div>
+        <script type="text/javascript">
+          const data = [{
+            x: {{ model_stats | map(attribute=0) | list | tojson }},
+            y: {{ model_stats | map(attribute=1) | list | tojson }},
+            type: 'bar'
+          }];
+
+          Plotly.newPlot('model-usage', data);
+        </script>
+      </div>
+    </div>
+  </body>
+</html>

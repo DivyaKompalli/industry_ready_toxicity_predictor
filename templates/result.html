@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prediction Result | ToxPredict</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <div class="navbar">
+      <a href="/">Home</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout" style="float: right">Logout</a>
+    </div>
+
+    <div class="container">
+      <div class="card">
+        <h1>Prediction Results</h1>
+
+        <div class="result-grid">
+          <!-- Molecule Visualization -->
+          <div class="result-card">
+            <h2><i class="fas fa-atom"></i> Molecule</h2>
+            <img
+              class="molecule-image"
+              src="data:image/png;base64,{{ result.mol_image }}"
+            />
+          </div>
+
+          <!-- Toxicity Prediction -->
+          <div class="result-card">
+            <h2><i class="fas fa-skull-crossbones"></i> Toxicity</h2>
+            <div
+              class="prediction-badge {% if result.is_toxic %}badge-toxic{% else %}badge-nontoxic{% endif %}"
+            >
+              {{ result.prediction }} ({{ "%.2f"|format(result.toxicity_score)
+              }})
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMET Radar Chart -->
+        <div class="result-section">
+          <h2><i class="fas fa-chart-radar"></i> ADMET Properties</h2>
+          <div id="admet-chart"></div>
+        </div>
+
+        <!-- Drug-likeness Rules -->
+        <div class="result-section">
+          <h2><i class="fas fa-check-circle"></i> Drug-likeness Rules</h2>
+          <div class="rules-grid">
+            {% for rule, data in druglikeness.items() %}
+            <div class="rule {% if data.pass %}pass{% else %}fail{% endif %}">
+              <span class="rule-name">{{ rule }}</span>
+              <span class="rule-value">{{ data.value }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- SHAP Explanation -->
+        <div class="result-section">
+          <h2><i class="fas fa-search"></i> Feature Importance</h2>
+          <div id="shap-plot"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ADMET Radar Chart
+      const admetData = {{ admet|tojson }};
+      Plotly.newPlot('admet-chart', [{
+          type: 'scatterpolar',
+          r: Object.values(admetData),
+          theta: Object.keys(admetData),
+          fill: 'toself',
+          fillcolor: 'rgba(79, 195, 247, 0.2)',
+          line: { color: 'rgba(79, 195, 247, 0.8)' }
+      }], {
+          polar: {
+              radialaxis: { visible: true, range: [0, 1] }
+          },
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor: 'rgba(0,0,0,0)',
+          font: { color: '#e0e0e0' }
+      });
+
+      // SHAP Plot
+      const shapData = {{ explanation|tojson }};
+      Plotly.newPlot('shap-plot', [{
+          type: 'bar',
+          x: shapData.values,
+          y: shapData.features,
+          orientation: 'h',
+          marker: {
+              color: shapData.values.map(v => v > 0 ? '#81c784' : '#ff5252')
+          }
+      }], {
+          margin: { t: 0, l: 150 },
+          xaxis: { title: 'SHAP Value' },
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor: 'rgba(0,0,0,0)',
+          font: { color: '#e0e0e0' }
+      });
+    </script>
+  </body>
+</html>

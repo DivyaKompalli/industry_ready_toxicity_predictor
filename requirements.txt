@@ -27,5 +27,5 @@ markupsafe==2.1.3
 flask-babel
 flask-dance
 fpdf
-setuptools>=42
-wheel
+
+

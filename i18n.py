@@ -1,4 +1,3 @@
-# ============================ i18n.py ============================
 from flask_babel import Babel
 from flask import request
 
